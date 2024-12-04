@@ -38,6 +38,18 @@ async function run() {
       }
     })
 
+    app.get('/movies', async(req, res) => {
+      try {
+        const movies = await moviesCollection.find().toArray(); 
+        res.json(movies);
+      }
+      catch (error) {
+        console.error("Error retreiving movie:", error);
+        res.status(500).json({ error: "Failed to add movie" });
+      }
+    })
+    
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {

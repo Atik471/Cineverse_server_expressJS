@@ -109,6 +109,22 @@ async function run() {
       }
     })
 
+    app.delete('/movies/favourites/:favid', async (req, res) => {
+      try {
+        const { favid } = req.params;
+        const deleteResult = await favouriteCollection.deleteOne({ _id: new ObjectId(favid) });
+    
+        if (deleteResult.deletedCount === 0) {
+          return res.status(404).json({ error: "Favourite Movie not found" });
+        }
+    
+        res.status(200).json({ message: "Favourite Movie deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting favourite movie:", error);
+        res.status(500).json({ error: "Failed to delete favourite movie" });
+      }
+    });
+
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {

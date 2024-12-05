@@ -97,6 +97,17 @@ async function run() {
       }
     })
     
+    app.get('/movies/favourites/:uid', async(req, res) => {
+      try {
+        const { uid } = req.params;
+        const favourites = await favouriteCollection.find({ user: uid }).toArray();
+        res.send(favourites)
+      }
+      catch(error) {
+        console.error("Error fetching favourite movies:", error);
+        res.status(500).json({ error: "Failed to fetch favourite movies" });
+      }
+    })
 
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");

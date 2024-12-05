@@ -55,10 +55,6 @@ async function run() {
         const { id } = req.params;
         const movie = await moviesCollection.findOne({ _id: new ObjectId(id) }); 
 
-        if (!ObjectId.isValid(id)) {
-          return res.status(400).json({ error: "Invalid movie ID format" });
-        }
-
         if (!movie) {
           return res.status(404).json({ error: "Movie not found" });
         }
@@ -67,9 +63,25 @@ async function run() {
       }
       catch (error) {
         console.error("Error retreiving movie:", error);
-        res.status(500).json({ error: "Failed to add movie" });
+        res.status(500).json({ error: "Failed to retreive movie" });
       }
     })
+
+    app.delete('/movies/:id', async (req, res) => {
+      try {
+        const { id } = req.params;
+        const deleteResult = await moviesCollection.deleteOne({ _id: new ObjectId(id) });
+    
+        if (deleteResult.deletedCount === 0) {
+          return res.status(404).json({ error: "Movie not found" });
+        }
+    
+        res.status(200).json({ message: "Movie deleted successfully" });
+      } catch (error) {
+        console.error("Error deleting movie:", error);
+        res.status(500).json({ error: "Failed to delete movie" });
+      }
+    });
     
 
     await client.db("admin").command({ ping: 1 });

@@ -25,6 +25,7 @@ async function run() {
   try {
     await client.connect();
     const moviesCollection = client.db("cineverse").collection("movies");
+    const favouriteCollection = client.db("cineverse").collection("favourites");
 
     app.post('/movies/add/', async(req, res) => {
       try {
@@ -82,6 +83,19 @@ async function run() {
         res.status(500).json({ error: "Failed to delete movie" });
       }
     });
+
+    app.post('/movies/add-favourite', async(req, res) => {
+      try {
+        const favourite = req.body;
+        const result = await favouriteCollection.insertOne(favourite);
+
+        res.status(200).json({ message: "Favourite movie added successfully", _id: result.insertedId });
+      }
+      catch (error) {
+        console.error("Error adding movie to favourites:", error);
+        res.status(500).json({ error: "Failed to add movie to favourites" });
+      }
+    })
     
 
     await client.db("admin").command({ ping: 1 });

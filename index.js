@@ -1,6 +1,6 @@
-const express = require('express');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
 // const { ObjectId } = require("mongodb");
 
 const app = express();
@@ -9,16 +9,16 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const uri = "mongodb+srv://cineverse_admin1:yCU9dkXu3Pk07dFu@cluster0.8nuar.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const uri =
+  "mongodb+srv://cineverse_admin1:yCU9dkXu3Pk07dFu@cluster0.8nuar.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
 
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
 });
 
 async function run() {
@@ -27,56 +27,58 @@ async function run() {
     const moviesCollection = client.db("cineverse").collection("movies");
     const favouriteCollection = client.db("cineverse").collection("favourites");
 
-    app.post('/movies/add/', async(req, res) => {
+    app.post("/movies/add/", async (req, res) => {
       try {
         const newMovie = req.body;
         const result = await moviesCollection.insertOne(newMovie);
 
-        res.status(200).json({ message: "Movie added successfully", movieId: result.insertedId });
-      }
-      catch (error) {
+        res.status(200).json({
+          message: "Movie added successfully",
+          movieId: result.insertedId,
+        });
+      } catch (error) {
         console.error("Error adding movie:", error);
         res.status(500).json({ error: "Failed to add movie" });
       }
-    })
+    });
 
-    app.get('/movies', async(req, res) => {
+    app.get("/movies", async (req, res) => {
       try {
-        const movies = await moviesCollection.find().toArray(); 
+        const movies = await moviesCollection.find().toArray();
         res.json(movies);
-      }
-      catch (error) {
+      } catch (error) {
         console.error("Error retreiving movies:", error);
         res.status(500).json({ error: "Failed to add movie" });
       }
-    })
+    });
 
-    app.get('/movies/:id', async(req, res) => {
+    app.get("/movies/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const movie = await moviesCollection.findOne({ _id: new ObjectId(id) }); 
+        const movie = await moviesCollection.findOne({ _id: new ObjectId(id) });
 
         if (!movie) {
           return res.status(404).json({ error: "Movie not found" });
         }
-    
+
         res.json(movie);
-      }
-      catch (error) {
+      } catch (error) {
         console.error("Error retreiving movie:", error);
         res.status(500).json({ error: "Failed to retreive movie" });
       }
-    })
+    });
 
-    app.delete('/movies/:id', async (req, res) => {
+    app.delete("/movies/:id", async (req, res) => {
       try {
         const { id } = req.params;
-        const deleteResult = await moviesCollection.deleteOne({ _id: new ObjectId(id) });
-    
+        const deleteResult = await moviesCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
         if (deleteResult.deletedCount === 0) {
           return res.status(404).json({ error: "Movie not found" });
         }
-    
+
         res.status(200).json({ message: "Movie deleted successfully" });
       } catch (error) {
         console.error("Error deleting movie:", error);
@@ -84,71 +86,124 @@ async function run() {
       }
     });
 
-    app.post('/movies/add-favourite', async(req, res) => {
+    app.post("/movies/add-favourite", async (req, res) => {
       try {
         const favourite = req.body;
         const result = await favouriteCollection.insertOne(favourite);
 
-        res.status(200).json({ message: "Favourite movie added successfully", _id: result.insertedId });
-      }
-      catch (error) {
+        res.status(200).json({
+          message: "Favourite movie added successfully",
+          _id: result.insertedId,
+        });
+      } catch (error) {
         console.error("Error adding movie to favourites:", error);
         res.status(500).json({ error: "Failed to add movie to favourites" });
       }
-    })
-    
-    app.get('/movies/favourites/:uid', async(req, res) => {
+    });
+
+    app.put("/movies/update/:movieId", async (req, res) => {
+      const { movieId } = req.params;
+      const updatedMovie = req.body; 
+
+      try {
+        const result = await moviesCollection.updateOne(
+          { _id: new ObjectId(movieId) },
+          { $set: updatedMovie } 
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({ error: "Movie not found" });
+        }
+
+        res.status(200).json({
+          message: "Movie updated successfully",
+        });
+      } catch (error) {
+        console.error("Error updating movie:", error);
+        res.status(500).json({ error: "Failed to update movie" });
+      }
+    });
+
+    app.get("/movies/favourites/:uid", async (req, res) => {
       try {
         const { uid } = req.params;
-        const favourites = await favouriteCollection.find({ user: uid }).toArray();
-        res.send(favourites)
-      }
-      catch(error) {
+        const favourites = await favouriteCollection
+          .find({ user: uid })
+          .toArray();
+        res.send(favourites);
+      } catch (error) {
         console.error("Error fetching favourite movies:", error);
         res.status(500).json({ error: "Failed to fetch favourite movies" });
       }
-    })
+    });
 
-    app.delete('/movies/favourites/:favid', async (req, res) => {
+    app.delete("/movies/favourites/:favid", async (req, res) => {
       try {
         const { favid } = req.params;
-        const deleteResult = await favouriteCollection.deleteOne({ _id: new ObjectId(favid) });
-    
+        const deleteResult = await favouriteCollection.deleteOne({
+          _id: new ObjectId(favid),
+        });
+
         if (deleteResult.deletedCount === 0) {
           return res.status(404).json({ error: "Favourite Movie not found" });
         }
-    
-        res.status(200).json({ message: "Favourite Movie deleted successfully" });
+
+        res
+          .status(200)
+          .json({ message: "Favourite Movie deleted successfully" });
       } catch (error) {
         console.error("Error deleting favourite movie:", error);
         res.status(500).json({ error: "Failed to delete favourite movie" });
       }
     });
 
-    app.get('/top-movies' , async (req, res) => {
+    app.get("/top-movies", async (req, res) => {
       try {
-        const topMovies = await moviesCollection.find().sort({ rating: -1 }).limit(6).toArray();;
-        res.send(topMovies)
+        const topMovies = await moviesCollection
+          .find()
+          .sort({ rating: -1 })
+          .limit(6)
+          .toArray();
+        res.send(topMovies);
       } catch (error) {
-        console.error('Error fetching top movies:', error);
+        console.error("Error fetching top movies:", error);
       }
     });
 
-    app.get('/check-favourite', async(req, res) => {
-      
-    })
+    app.get("/check-favourite/:movieId", async (req, res) => {
+      const { movieId } = req.params;
+
+      try {
+        const movieExists = await favouriteCollection.findOne({
+          _id: new ObjectId(movieId),
+        });
+
+        if (movieExists) {
+          res.send({ exists: true, message: "Movie exists in favourites." });
+        } else {
+          res.send({
+            exists: false,
+            message: "Movie does not exist in favourites.",
+          });
+        }
+      } catch (error) {
+        console.error("Error checking favourite movie:", error);
+        res.status(500).send({ error: "Internal Server Error" });
+      }
+    });
 
     //await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     //await client.close();
   }
 }
 run().catch(console.dir);
 
-
-app.get('/', (req, res) => {
-    res.send("running cineverse")
-})
+app.get("/", (req, res) => {
+  res.send("running cineverse");
+});
 
 app.listen(port);

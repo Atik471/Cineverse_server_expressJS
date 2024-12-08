@@ -125,6 +125,19 @@ async function run() {
       }
     });
 
+    app.get('/top-movies' , async (req, res) => {
+      try {
+        const topMovies = await moviesCollection.find().sort({ rating: -1 }).limit(6).toArray();;
+        res.send(topMovies)
+      } catch (error) {
+        console.error('Error fetching top movies:', error);
+      }
+    });
+
+    app.get('/check-favourite', async(req, res) => {
+      
+    })
+
     //await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
